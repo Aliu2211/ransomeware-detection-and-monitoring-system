@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Activity Log - Ransomware Detection System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .activity-row {
+            transition: all 0.2s;
+        }
+        .activity-row:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">RMS Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/alerts">Alerts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/activity">Activity Log</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/quarantine">Quarantine</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settings">Settings</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span class="nav-link" id="system-time">{{ system_status.last_update }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Activity Log</h1>
+                <p>View system activity and monitoring events.</p>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" id="activity-search" class="form-control" placeholder="Search activity...">
+                    <button class="btn btn-outline-secondary" type="button" id="search-btn">Search</button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="type-filter" class="form-select">
+                    <option value="all">All Activity Types</option>
+                    <option value="file">File Operations</option>
+                    <option value="system">System Events</option>
+                    <option value="network">Network Events</option>
+                    <option value="threat">Threat Detection</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button id="clear-activity" class="btn btn-secondary">Clear Log</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body p-0">
+                        {% if activity_log %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Timestamp</th>
+                                            <th>Type</th>
+                                            <th>Message</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for entry in activity_log %}
+                                            <tr class="activity-row" data-type="{{ entry.type }}">
+                                                <td><small>{{ entry.timestamp }}</small></td>
+                                                <td><span class="badge bg-{{ entry.type_color }}">{{ entry.type }}</span></td>
+                                                <td>{{ entry.message }}</td>
+                                                <td>
+                                                    {% if entry.details %}
+                                                        <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#details-{{ loop.index }}">Details</button>
+                                                        <!-- Modal for details -->
+                                                        <div class="modal fade" id="details-{{ loop.index }}" tabindex="-1" aria-hidden="true">
+                                                            <div class="modal-dialog">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title">Activity Details</h5>
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        <pre>{{ entry.details }}</pre>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info m-3">No activity recorded yet.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Update system time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('system-time').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Activity filtering
+        document.getElementById('search-btn').addEventListener('click', filterActivity);
+        document.getElementById('type-filter').addEventListener('change', filterActivity);
+        
+        function filterActivity() {
+            const searchTerm = document.getElementById('activity-search').value.toLowerCase();
+            const typeFilter = document.getElementById('type-filter').value;
+            
+            const activities = document.querySelectorAll('.activity-row');
+            activities.forEach(activity => {
+                const type = activity.dataset.type;
+                const text = activity.textContent.toLowerCase();
+                
+                const typeMatch = typeFilter === 'all' || type === typeFilter;
+                const textMatch = searchTerm === '' || text.includes(searchTerm);
+                
+                activity.style.display = typeMatch && textMatch ? '' : 'none';
+            });
+        }
+        
+        // Clear activity log
+        document.getElementById('clear-activity').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear the activity log?')) {
+                fetch('/api/clear_activity', {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

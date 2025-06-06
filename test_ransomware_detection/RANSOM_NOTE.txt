@@ -1,0 +1,3 @@
+THIS IS A TEST RANSOM NOTE
+Your files have been encrypted in this simulation.
+This is only a test for the Ransomware Detection System.

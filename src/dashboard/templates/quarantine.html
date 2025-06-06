@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quarantine - Ransomware Detection System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">RMS Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/alerts">Alerts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/activity">Activity Log</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/quarantine">Quarantine</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settings">Settings</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span class="nav-link" id="system-time">{{ system_status.last_update }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Quarantine</h1>
+                <p>Manage quarantined files and view mitigation actions.</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">Take Mitigation Action</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="actionTabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#file-action">Quarantine File</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#process-action">Terminate Process</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#network-action">Block Connection</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content mt-3">
+                            <div class="tab-pane fade show active" id="file-action">
+                                <form id="quarantine-form">
+                                    <div class="mb-3">
+                                        <label for="file-path" class="form-label">File Path</label>
+                                        <input type="text" class="form-control" id="file-path" placeholder="C:\path\to\suspicious\file.exe">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="file-reason" class="form-label">Reason</label>
+                                        <input type="text" class="form-control" id="file-reason" placeholder="Suspicious behavior">
+                                    </div>
+                                    <button type="submit" class="btn btn-danger">Quarantine File</button>
+                                </form>
+                            </div>
+                            <div class="tab-pane fade" id="process-action">
+                                <form id="terminate-form">
+                                    <div class="mb-3">
+                                        <label for="process-pid" class="form-label">Process ID</label>
+                                        <input type="number" class="form-control" id="process-pid" placeholder="1234">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="process-reason" class="form-label">Reason</label>
+                                        <input type="text" class="form-control" id="process-reason" placeholder="Suspicious activity">
+                                    </div>
+                                    <button type="submit" class="btn btn-danger">Terminate Process</button>
+                                </form>
+                            </div>
+                            <div class="tab-pane fade" id="network-action">
+                                <form id="block-form">
+                                    <div class="mb-3">
+                                        <label for="ip-address" class="form-label">IP Address</label>
+                                        <input type="text" class="form-control" id="ip-address" placeholder="192.168.1.100">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="network-reason" class="form-label">Reason</label>
+                                        <input type="text" class="form-control" id="network-reason" placeholder="Suspicious traffic">
+                                    </div>
+                                    <button type="submit" class="btn btn-danger">Block Connection</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Action Result</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="action-result" class="p-3 bg-light">
+                            <p class="text-muted">Results of mitigation actions will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Quarantined Files</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if quarantine_items %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Filename</th>
+                                        <th>Original Path</th>
+                                        <th>Quarantine Time</th>
+                                        <th>Reason</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in quarantine_items %}
+                                    <tr>
+                                        <td>{{ item.filename }}</td>
+                                        <td>{{ item.original_path }}</td>
+                                        <td>{{ item.quarantined_at }}</td>
+                                        <td>{{ item.reason }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning restore-file" data-filename="{{ item.filename }}">
+                                                Restore
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">No files in quarantine.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Update system time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('system-time').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Quarantine file
+        document.getElementById('quarantine-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            takeAction({
+                action: 'quarantine_file',
+                path: document.getElementById('file-path').value,
+                reason: document.getElementById('file-reason').value
+            });
+        });
+        
+        // Terminate process
+        document.getElementById('terminate-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            takeAction({
+                action: 'terminate_process',
+                pid: document.getElementById('process-pid').value,
+                reason: document.getElementById('process-reason').value
+            });
+        });
+        
+        // Block connection
+        document.getElementById('block-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            takeAction({
+                action: 'block_connection',
+                ip: document.getElementById('ip-address').value,
+                reason: document.getElementById('network-reason').value
+            });
+        });
+        
+        // Restore file
+        document.querySelectorAll('.restore-file').forEach(button => {
+            button.addEventListener('click', function() {
+                const filename = this.getAttribute('data-filename');
+                fetch(`/api/quarantine/restore/${filename}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showResult(data);
+                    if (data.success) {
+                        setTimeout(() => window.location.reload(), 2000);
+                    }
+                })
+                .catch(error => {
+                    showResult({success: false, error: error.toString()});
+                });
+            });
+        });
+        
+        // Take mitigation action
+        function takeAction(data) {
+            fetch('/api/mitigation/action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult(data);
+                if (data.success && data.action == 'quarantine_file') {
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            })
+            .catch(error => {
+                showResult({success: false, error: error.toString()});
+            });
+        }
+        
+        // Display result
+        function showResult(data) {
+            const resultDiv = document.getElementById('action-result');
+            if (data.success) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-success mb-0">
+                        <strong>Success!</strong> The action was completed successfully.
+                        <hr>
+                        <pre class="mb-0">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+                        <strong>Error!</strong> ${data.error || 'Something went wrong.'}
+                        <hr>
+                        <pre class="mb-0">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

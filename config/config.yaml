@@ -1,0 +1,63 @@
+# Ransomware Detection System Configuration
+
+# Monitoring settings
+monitoring:
+  paths:
+    - /home      # Linux default paths (will be adjusted for Windows automatically)
+    - /var
+  collection_interval: 5  # Seconds
+  file_monitor_enabled: true
+  system_monitor_enabled: true
+
+# Machine learning model settings
+model:
+  model_path: data/models/ransomware_detector.joblib
+  training_data_path: data/training/normal_behavior.json
+  auto_train: true
+  detection_threshold: -0.5  # Anomaly score threshold (-1 to 0)
+
+# Threat intelligence settings
+threat_intelligence:
+  enabled: true
+  feeds_config: config/ti_feeds.json
+  indicators_path: data/threat_intel/indicators.json
+  update_interval: 3600  # Seconds
+
+# Response settings
+response:
+  alert_level: warning  # info, warning, or critical
+  alert_methods:
+    - console
+    - file
+    - gpio  # For physical indicators on Raspberry Pi
+  email_alerts: false
+  email_config:
+    smtp_server: smtp.gmail.com
+    smtp_port: 587
+    username: alerts@example.com
+    password: your_password  # Consider using environment variables instead
+    recipients:
+      - admin@example.com
+  auto_mitigation: false
+  mitigation_actions:
+    - isolate_file
+    - block_process
+    - block_network
+
+# System settings
+system:
+  data_dir: data
+  debug_mode: false
+  raspberry_pi:
+    gpio_enabled: true
+    status_led_pin: 17  # Green LED for system status
+    alert_led_pin: 27   # Red LED for alerts
+    activity_led_pin: 22  # Yellow LED for activity
+
+# Dashboard settings
+dashboard:
+  enabled: true
+  port: 5000
+  host: 0.0.0.0  # Listen on all interfaces
+  debug: false
+  max_history_points: 50

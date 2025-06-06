@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings - Ransomware Detection System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">RMS Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/alerts">Alerts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/activity">Activity Log</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/quarantine">Quarantine</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/settings">Settings</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span class="nav-link" id="system-time">{{ system_status.last_update }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>System Settings</h1>
+                <p>Configure the ransomware monitoring and detection system.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Monitoring Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="monitoring-form">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable-file-monitoring" {% if system_status.file_monitor %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable-file-monitoring">File System Monitoring</label>
+                                </div>
+                                <small class="text-muted">Monitor file operations and detect suspicious patterns.</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable-process-monitoring" {% if system_status.system_monitor %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable-process-monitoring">Process Monitoring</label>
+                                </div>
+                                <small class="text-muted">Monitor system processes for suspicious behavior.</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable-network-monitoring" {% if system_status.network_monitor %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable-network-monitoring">Network Monitoring</label>
+                                </div>
+                                <small class="text-muted">Monitor network connections for C&C traffic.</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="use-threat-intel" {% if system_status.threat_intel %}checked{% endif %}>
+                                    <label class="form-check-label" for="use-threat-intel">Use Threat Intelligence</label>
+                                </div>
+                                <small class="text-muted">Incorporate threat intelligence feeds into detection.</small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Monitoring Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Mitigation Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="mitigation-form">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable-auto-mitigation">
+                                    <label class="form-check-label" for="enable-auto-mitigation">Automatic Mitigation</label>
+                                </div>
+                                <small class="text-muted">Automatically take action when threats are detected.</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Mitigation Actions</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="action-isolate-file" checked>
+                                    <label class="form-check-label" for="action-isolate-file">Isolate Suspicious Files</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="action-block-process" checked>
+                                    <label class="form-check-label" for="action-block-process">Terminate Suspicious Processes</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="action-block-network" checked>
+                                    <label class="form-check-label" for="action-block-network">Block Suspicious Network Connections</label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Mitigation Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">System Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="config-form" class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="alert-threshold" class="form-label">Alert Threshold</label>
+                                <select class="form-select" id="alert-threshold">
+                                    <option value="low">Low (More Alerts)</option>
+                                    <option value="medium" selected>Medium (Balanced)</option>
+                                    <option value="high">High (Fewer Alerts)</option>
+                                </select>
+                                <small class="text-muted">Adjust sensitivity of the detection system</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="scan-frequency" class="form-label">Background Scan Frequency</label>
+                                <select class="form-select" id="scan-frequency">
+                                    <option value="hourly">Hourly</option>
+                                    <option value="daily" selected>Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="log-retention" class="form-label">Log Retention Period</label>
+                                <select class="form-select" id="log-retention">
+                                    <option value="7">7 Days</option>
+                                    <option value="30" selected>30 Days</option>
+                                    <option value="90">90 Days</option>
+                                    <option value="365">1 Year</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="update-frequency" class="form-label">Intelligence Update Frequency</label>
+                                <select class="form-select" id="update-frequency">
+                                    <option value="hourly">Hourly</option>
+                                    <option value="daily" selected>Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Save Configuration</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">System Maintenance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button id="clear-all-data" class="btn btn-outline-danger mb-2 w-100">Clear All Data</button>
+                                <small class="text-muted d-block">Removes all alerts, logs, and monitoring data.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <button id="reset-system" class="btn btn-danger mb-2 w-100">Reset to Default Settings</button>
+                                <small class="text-muted d-block">Resets all system settings to default values.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Update system time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('system-time').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Save monitoring settings
+        document.getElementById('monitoring-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const settings = {
+                file_monitor: document.getElementById('enable-file-monitoring').checked,
+                system_monitor: document.getElementById('enable-process-monitoring').checked,
+                network_monitor: document.getElementById('enable-network-monitoring').checked,
+                threat_intel: document.getElementById('use-threat-intel').checked
+            };
+            
+            saveSettings('/api/update_monitoring', settings);
+        });
+        
+        // Save mitigation settings
+        document.getElementById('mitigation-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const settings = {
+                auto_mitigation: document.getElementById('enable-auto-mitigation').checked,
+                actions: []
+            };
+            
+            if (document.getElementById('action-isolate-file').checked) {
+                settings.actions.push('isolate_file');
+            }
+            if (document.getElementById('action-block-process').checked) {
+                settings.actions.push('block_process');
+            }
+            if (document.getElementById('action-block-network').checked) {
+                settings.actions.push('block_network');
+            }
+            
+            saveSettings('/api/update_mitigation', settings);
+        });
+        
+        // Save config settings
+        document.getElementById('config-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const settings = {
+                alert_threshold: document.getElementById('alert-threshold').value,
+                scan_frequency: document.getElementById('scan-frequency').value,
+                log_retention: document.getElementById('log-retention').value,
+                update_frequency: document.getElementById('update-frequency').value
+            };
+            
+            saveSettings('/api/update_config', settings);
+        });
+        
+        // Clear all data
+        document.getElementById('clear-all-data').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all monitoring data? This action cannot be undone.')) {
+                fetch('/api/clear_all_data', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert('success', 'All data has been cleared.');
+                        } else {
+                            showAlert('danger', 'Failed to clear data: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => showAlert('danger', 'Error: ' + error));
+            }
+        });
+        
+        // Reset system
+        document.getElementById('reset-system').addEventListener('click', function() {
+            if (confirm('Are you sure you want to reset all settings to default values? This will not affect collected data.')) {
+                fetch('/api/reset_settings', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert('success', 'Settings have been reset to default values.');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showAlert('danger', 'Failed to reset settings: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => showAlert('danger', 'Error: ' + error));
+            }
+        });
+        
+        // Helper function to save settings
+        function saveSettings(endpoint, data) {
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', 'Settings saved successfully.');
+                } else {
+                    showAlert('danger', 'Failed to save settings: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                showAlert('danger', 'Error: ' + error);
+            });
+        }
+        
+        // Helper function to show alerts
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.setAttribute('role', 'alert');
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+            
+            // Auto dismiss after 5 seconds
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alertDiv);
+                bsAlert.close();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
