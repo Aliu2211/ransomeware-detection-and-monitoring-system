@@ -37,8 +37,8 @@ The Ransomware Monitoring System (RMS) is designed to detect and mitigate ransom
 ### Step 1: Clone the Repository
 
 ```powershell
-git clone https://github.com/yourusername/RMS.git
-cd RMS
+git clone git@github.com:Aliu2211/ransomeware-detection-and-monitoring-system.git
+cd ransomeware-detection-and-monitoring-system
 ```
 
 Or download and extract the ZIP file from the repository.
@@ -152,7 +152,7 @@ python enhanced_ransomware_test.py
 ### Project Structure
 
 ```
-RMS/
+ransomeware-detection-and-monitoring-system/
 ├── config/                # Configuration files
 ├── data/                  # Data storage
 │   ├── alerts/            # Alert history
